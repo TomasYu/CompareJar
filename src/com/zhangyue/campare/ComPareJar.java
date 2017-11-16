@@ -16,6 +16,8 @@ public class ComPareJar {
     String first_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin.jar";
     String second_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin2.jar";
     public static final String unZipFileDir="./temp";
+    private  boolean mIgnoreFile = false;   //是否忽略字段的变化
+    private  boolean mIgnoreMethod = false; //是否忽略方法的变化
 
     private int mAddFieldCount =  0;
     private int mRemoveFieldCount =  0;
@@ -60,7 +62,7 @@ public class ComPareJar {
         //对比字段
         List<String> filed1 = mod1.getmFiled();
         List<String> filed2 = mod2.getmFiled();
-        if (filed1 != filed2) {
+        if (filed1 != filed2 && !mIgnoreFile) {
             for (String field : filed1) {
                 if (filed2.contains(field)) {
                     filed2.remove(field);
@@ -84,7 +86,7 @@ public class ComPareJar {
 
         List<MethodModel> methodMod1 = mod1.getmMethod();
         List<MethodModel> methodMod2 = mod2.getmMethod();
-        if (methodMod1 != methodMod2) {
+        if (methodMod1 != methodMod2 && !mIgnoreMethod) {
             for (MethodModel method : methodMod1) {
                 if (methodMod2.contains(method)) {
                     methodMod2.remove(method);
@@ -144,14 +146,15 @@ public class ComPareJar {
             }
 
             //方法
-            if (temp.contains("(") && temp.contains(")")) {
+            if (temp.contains("(") && temp.contains(")") && !mIgnoreMethod) {
                 MethodModel methodModel = anaylzeMethodString(temp);
                 if (methodModel != null) {
                     methodList.add(methodModel);
                 }
                 continue;
             }
-            if (!Utils.isEmpty(temp)) {
+            //字段
+            if (!Utils.isEmpty(temp) && !mIgnoreFile) {
                 filedList.add(temp);
             }
         }
@@ -195,4 +198,11 @@ public class ComPareJar {
         return methodModel;
     }
 
+    public void setmIgnoreFile(boolean mIgnoreFile) {
+        this.mIgnoreFile = mIgnoreFile;
+    }
+
+    public void setmIgnoreMethod(boolean mIgnoreMethod) {
+        this.mIgnoreMethod = mIgnoreMethod;
+    }
 }
