@@ -1,6 +1,5 @@
 package com.zhangyue.campare.tools;
 
-import com.zhangyue.campare.tools.Command;
 
 /**
  * Created by zy1 on 16/11/2017.

@@ -1,17 +1,5 @@
 package com.test;
 
-import com.zhangyue.campare.tools.Command;
-import sun.tools.java.ClassFile;
-import sun.tools.java.ClassPath;
-import sun.tools.java.Identifier;
-import sun.tools.java.Package;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Enumeration;
-
 /**
  * Created by zy1 on 16/11/2017.
  */
@@ -172,73 +160,73 @@ public class Test {
 
     }
 
-    private static void tsst1() {
-        String s = Command.exeCmd("javap -c -private C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin\\com\\zhangyue\\iReader\\cache\\VolleyLoader.class");
-        System.out.println(s);
-        String[] split = s.split("\n");
-
-
-        System.out.println("aaaa");
-//        int a = 20;
-////        Path path = Paths.get("C:/iReader_plugin");
-////        Path jarFile = Files.createFile(path);
+//    private static void tsst1() {
+//        String s = Command.exeCmd("javap -c -private C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin\\com\\zhangyue\\iReader\\cache\\VolleyLoader.class");
+//        System.out.println(s);
+//        String[] split = s.split("\n");
 //
-//        File file = new File("c://iReader_plugin.jar");
 //
-//        JarFile jarFile = null;
-//        try {
-//            jarFile = new JarFile(file);
-//        } catch (IOException e) {
+//        System.out.println("aaaa");
+////        int a = 20;
+//////        Path path = Paths.get("C:/iReader_plugin");
+//////        Path jarFile = Files.createFile(path);
+////
+////        File file = new File("c://iReader_plugin.jar");
+////
+////        JarFile jarFile = null;
+////        try {
+////            jarFile = new JarFile(file);
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        }
+////
+////        Enumeration<JarEntry> entries = jarFile.entries();
+////        while (entries.hasMoreElements()) {
+////            JarEntry jarEntry = entries.nextElement();
+////            System.out.print(jarEntry.getClass());
+////        }
+//
+////        ClassPath classPath = new ClassPath("c://iReader_plugin.jar");
+////        URL[] urls = new URL[0];
+////        try {
+////            urls = new URL[]{new URL("jar:file:c://iReader_plugin.jar!/")};
+////            URLClassLoader cl = URLClassLoader.newInstance(urls);
+////
+////            Identifier identifier = Identifier.lookup("com");
+////            try {
+////                Package pkg = new Package(classPath, identifier);
+////                Enumeration binaryFiles = pkg.getBinaryFiles();
+////                while (binaryFiles.hasMoreElements()) {
+////                    ClassFile classFile = (ClassFile) binaryFiles.nextElement();
+////                    classFile.getName();
+////                    // -6 because of .class
+////                    String className = classFile.getName().substring(0, classFile.getName().length() - 6);
+////                    if (className.contains("$")) {
+////                        continue;
+////                    }
+//                    Command.exeCmd("javap -c -private C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin\\com\\zhangyue\\iReader\\cache\\");
+////                    className = className.replace('/', '.');
+////                    Class c = cl.loadClass(className);
+////                    System.out.println(className);
+////
+////                    Field[] fields = c.getFields();
+////                    for (Field field : fields) {
+////                        String name = field.getName();
+//////                        System.out.println(name);
+////                    }
+//
+//
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+////            } catch (ClassNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//
+//        } catch (MalformedURLException e) {
 //            e.printStackTrace();
 //        }
-//
-//        Enumeration<JarEntry> entries = jarFile.entries();
-//        while (entries.hasMoreElements()) {
-//            JarEntry jarEntry = entries.nextElement();
-//            System.out.print(jarEntry.getClass());
-//        }
-
-        ClassPath classPath = new ClassPath("c://iReader_plugin.jar");
-        URL[] urls = new URL[0];
-        try {
-            urls = new URL[]{new URL("jar:file:c://iReader_plugin.jar!/")};
-            URLClassLoader cl = URLClassLoader.newInstance(urls);
-
-            Identifier identifier = Identifier.lookup("com");
-            try {
-                Package pkg = new Package(classPath, identifier);
-                Enumeration binaryFiles = pkg.getBinaryFiles();
-                while (binaryFiles.hasMoreElements()) {
-                    ClassFile classFile = (ClassFile) binaryFiles.nextElement();
-                    classFile.getName();
-                    // -6 because of .class
-                    String className = classFile.getName().substring(0, classFile.getName().length() - 6);
-                    if (className.contains("$")) {
-                        continue;
-                    }
-                    Command.exeCmd("javap -c -private C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin\\com\\zhangyue\\iReader\\cache\\");
-//                    className = className.replace('/', '.');
-//                    Class c = cl.loadClass(className);
-//                    System.out.println(className);
-//
-//                    Field[] fields = c.getFields();
-//                    for (Field field : fields) {
-//                        String name = field.getName();
-////                        System.out.println(name);
-//                    }
-
-
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-//            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-    }
+//    }
 
 
 }
