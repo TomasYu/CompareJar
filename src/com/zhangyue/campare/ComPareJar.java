@@ -1,12 +1,11 @@
 package com.zhangyue.campare;
 
+import com.zhangyue.campare.model.ClassInfo;
 import com.zhangyue.campare.model.ClassModel;
 import com.zhangyue.campare.model.MethodModel;
-import com.zhangyue.campare.tools.JavaCommand;
-import com.zhangyue.campare.tools.Log;
-import com.zhangyue.campare.tools.Utils;
-import com.zhangyue.campare.tools.Zip;
+import com.zhangyue.campare.tools.*;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -15,7 +14,7 @@ import java.util.*;
 public class ComPareJar {
     String first_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin.jar";
     String second_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin2.jar";
-    public static final String unZipFileDir="./temp";
+    public static final String unZipFileDir=Utils.getCurPath()+"\\temp";
     private  boolean mIgnoreFile = false;   //是否忽略字段的变化
     private  boolean mIgnoreMethod = false; //是否忽略方法的变化
 
@@ -28,26 +27,39 @@ public class ComPareJar {
     }
 
     public void compare(){
+        Map<String, ClassInfo> map1 = readJarMd5(first_jar_path,unZipFileDir+"1");
 
-        Map<String, ClassModel> map1 = readJarFile(first_jar_path);
+        Map<String, ClassInfo> map2 = readJarMd5(second_jar_path,unZipFileDir+"2");
+        List<String> mDiffFileKey = new ArrayList<>();
 
-        Map<String, ClassModel> map2 = readJarFile(second_jar_path);
-
-        Iterator<Map.Entry<String, ClassModel>> iterator = map2.entrySet().iterator();
+        Iterator<Map.Entry<String, ClassInfo>> iterator = map2.entrySet().iterator();
         while (iterator.hasNext()){
-            Map.Entry<String, ClassModel> next = iterator.next();
+            Map.Entry<String, ClassInfo> next = iterator.next();
             String key = next.getKey();
             if (map1.containsKey(key)){
-                ClassModel classModel = map1.get(key);
-                ClassModel classModel2 = map2.get(key);
-                if (!classModel.equals(classModel2) ){
-                    compareModel(classModel,classModel2);
+                ClassInfo classInfo1 = map1.get(key);
+                ClassInfo classInfo2 = map2.get(key);
+                if (!classInfo1.equals(classInfo2) ){
+                    mDiffFileKey.add(key);
                 }
             }else {
                 //新增了类
-                Log.d("增加了类："+map2.get(key).getmClassName());
+//                Log.d("增加了类："+map2.get(key).getmClassName());
             }
         }
+
+        for (String key : mDiffFileKey) {
+            //从不同的mDiffFileKey 取出两个class
+            //1
+            ClassInfo classInfo1 = map1.get(key);
+            ClassModel classMod1 = readClassModelFromFile(classInfo1.getmClassPath());
+            //2
+            ClassInfo classInfo2 = map2.get(key);
+            ClassModel classMod2 = readClassModelFromFile(classInfo2.getmClassPath());
+
+            compareModel(classMod1,classMod2);
+        }
+        
         Log.d("总结：");
         Log.d("增加方法总数："+mAddMethodCount);
         Log.d("删除方法总数："+mRemoveMethodCount);
@@ -56,13 +68,16 @@ public class ComPareJar {
     }
 
     private void compareModel(ClassModel mod1,ClassModel mod2) {
+        if (mod1.equals(mod2)) {
+            return;
+        }
 
         Log.d(mod1.getmClassName()+"的差异");
 
         //对比字段
         List<String> filed1 = mod1.getmFiled();
         List<String> filed2 = mod2.getmFiled();
-        if (filed1 != filed2 && !mIgnoreFile) {
+        if (!filed1.equals(filed2)  && !mIgnoreFile) {
             for (String field : filed1) {
                 if (filed2.contains(field)) {
                     filed2.remove(field);
@@ -86,7 +101,7 @@ public class ComPareJar {
 
         List<MethodModel> methodMod1 = mod1.getmMethod();
         List<MethodModel> methodMod2 = mod2.getmMethod();
-        if (methodMod1 != methodMod2 && !mIgnoreMethod) {
+        if (!methodMod1.equals(methodMod2) && !mIgnoreMethod) {
             for (MethodModel method : methodMod1) {
                 if (methodMod2.contains(method)) {
                     methodMod2.remove(method);
@@ -117,27 +132,63 @@ public class ComPareJar {
             if (mZipFile.contains("$")) {
                 continue;
             }
-            String string = JavaCommand.javapClass(mZipFile);
-            if (Utils.isEmpty(string)) {
-                continue;
-            }
-            //去掉  Compiled from "CONSTANT.java 这一行
-            String[] oldStrArr = string.split("\n");
-            String[] newStrArr = new String[oldStrArr.length-1];
-            System.arraycopy(oldStrArr,1,newStrArr,0,oldStrArr.length-1);
-            //解析classmodel
-            ClassModel classModel = analyzeClassString(newStrArr);
-            classModelMap.put(classModel.getmClassName(),classModel);
+
         }
         return classModelMap;
     }
 
-    private ClassModel analyzeClassString(String[] strArr) {
+    /**
+     * 从class文件中读取ClassModel
+     * @param classFilePath
+     * @return
+     */
+    private ClassModel readClassModelFromFile(String classFilePath){
+        String string = JavaCommand.javapClass(classFilePath);
+        if (Utils.isEmpty(string)) {
+            return null;
+        }
+
+        ClassModel classModel = analyzeClassString(string);
+        return classModel;
+    }
+
+    /**
+     * 读取jar里面的所有的文件  以及md5
+     * @param jarFilePath
+     * @param unZipPath
+     * @return
+     */
+    public Map<String,ClassInfo> readJarMd5(String jarFilePath,String unZipPath){
+        Map<String,ClassInfo> jarMap = new HashMap<>();
+        Zip zip = new Zip();
+        zip.unzip(jarFilePath,unZipPath,true);
+        for (String mZipFile : zip.mZipFiles) {
+            //如果是内部类 包含$ 则不管
+            if (mZipFile.contains("$")) {
+                continue;
+            }
+            String key = mZipFile.substring(mZipFile.indexOf(unZipPath) + unZipPath.length() + 1);
+            jarMap.put(key, new ClassInfo(mZipFile,MD5.getMd5ByFile(new File(mZipFile))));
+        }
+        return jarMap;
+    }
+
+    /**
+     * 根据字符数组解析ClassModel
+     * @param classStr
+     * @return
+     */
+    private ClassModel analyzeClassString(String classStr) {
+        //去掉  Compiled from "CONSTANT.java 这一行
+        String[] oldStrArr = classStr.split("\n");
+        String[] newStrArr = new String[oldStrArr.length-1];
+        System.arraycopy(oldStrArr,1,newStrArr,0,oldStrArr.length-1);
+        //解析classmodel
         ClassModel classModel = new ClassModel();
         List<MethodModel> methodList = new ArrayList<>();
         List<String> filedList = new ArrayList<>();
-        for (int i = 0; i < strArr.length; i++) {
-            String temp = strArr[i].replaceAll(";","");
+        for (int i = 0; i < newStrArr.length; i++) {
+            String temp = newStrArr[i].replaceAll(";","");
             temp = temp.replaceAll("}","");
             //第一行是类名
             if (i==0) {
@@ -163,6 +214,11 @@ public class ComPareJar {
         return classModel;
     }
 
+    /**
+     * 解析方法
+     * @param methodString
+     * @return
+     */
     private MethodModel anaylzeMethodString(String methodString) {
 //        private void initDialogProgress();
         MethodModel methodModel = new MethodModel();

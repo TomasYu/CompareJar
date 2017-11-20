@@ -1,5 +1,7 @@
 package com.zhangyue.campare.tools;
 
+import java.io.File;
+
 /**
  * Created by zy1 on 16/11/2017.
  */
@@ -12,6 +14,12 @@ public class Utils {
      */
     public static boolean isEmpty(String str) {
         return str == null || str.trim().length() == 0 ;
+    }
+
+    public static String getCurPath(){
+        File   file=new File(".");
+        String path=file.getAbsolutePath();
+        return path;
     }
 
 }
