@@ -41,8 +41,9 @@ public class MethodModel {
 
         MethodModel that = (MethodModel) o;
 
-        if (!getmName().equals(that.getmName())) return false;
-        if (!getmReturnType().equals(that.getmReturnType())) return false;
+        if (getmName() != null ? !getmName().equals(that.getmName()) : that.getmName() != null) return false;
+        if (getmReturnType() != null ? !getmReturnType().equals(that.getmReturnType()) : that.getmReturnType() != null)
+            return false;
         return getmArgs() != null ? getmArgs().equals(that.getmArgs()) : that.getmArgs() == null;
     }
 

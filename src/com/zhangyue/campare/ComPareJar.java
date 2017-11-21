@@ -6,9 +6,8 @@ import com.zhangyue.campare.model.MethodModel;
 import com.zhangyue.campare.tools.*;
 
 import java.io.File;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.io.IOException;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
@@ -26,6 +25,7 @@ public class ComPareJar {
     private int mRemoveFieldCount =  0;
     private int mAddMethodCount = 0;
     private int mRemoveMethodCount = 0;
+    private StringBuffer sbResult;
     public ComPareJar(){
 
     }
@@ -35,7 +35,7 @@ public class ComPareJar {
 
         Map<String, ClassInfo> map2 = readJarFileMd5(second_jar_path,unZipFileDir+"/2");
         List<String> mDiffFileKey = new ArrayList<>();
-
+        sbResult = new StringBuffer();
         Iterator<Map.Entry<String, ClassInfo>> iterator = map2.entrySet().iterator();
         while (iterator.hasNext()){
             Map.Entry<String, ClassInfo> next = iterator.next();
@@ -70,6 +70,27 @@ public class ComPareJar {
         Log.d("删除方法总数："+mRemoveMethodCount);
         Log.d("增加字段总数："+mAddFieldCount);
         Log.d("删除字段总数："+mRemoveFieldCount);
+
+        sbResult.append("总结：");
+        sbResult.append("\r\n");
+        sbResult.append("增加方法总数："+mAddMethodCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除方法总数："+mRemoveMethodCount);
+        sbResult.append("\r\n");
+        sbResult.append("增加字段总数："+mAddFieldCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除字段总数："+mRemoveFieldCount);
+        sbResult.append("\r\n");
+
+        try {
+            String resultFilePath = unZipFileDir + "/result.txt";
+            Path path = Paths.get(resultFilePath);
+            Files.deleteIfExists(path);
+            Files.createFile(path);
+            Utils.write2File(resultFilePath,sbResult.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         clearTemp();
     }
 
@@ -83,6 +104,8 @@ public class ComPareJar {
         }
 
         Log.d(mod1.getmClassName()+"的差异");
+        sbResult.append(mod1.getmClassName()+"的差异");
+        sbResult.append("\r\n");
 
         //对比字段
         List<String> filed1 = mod1.getmFiled();
@@ -94,6 +117,8 @@ public class ComPareJar {
                     continue;
                 }
                 Log.d("filed2 删除了字段"+field);
+                sbResult.append("filed2 删除了字段"+field);
+                sbResult.append("\r\n");
                 mRemoveFieldCount++;
 
             }
@@ -103,6 +128,8 @@ public class ComPareJar {
                     continue;
                 }
                 Log.d("file 2 增加了字段"+field);
+                sbResult.append("file 2 增加了字段"+field);
+                sbResult.append("\r\n");
                 mAddFieldCount++;
             }
         }
@@ -118,6 +145,8 @@ public class ComPareJar {
                     continue;
                 }
                 Log.d("filed2 删除了方法 "+method.getmName());
+                sbResult.append("filed2 删除了方法 "+method.getmName());
+                sbResult.append("\r\n");
                 mRemoveMethodCount++;
             }
 
@@ -126,11 +155,14 @@ public class ComPareJar {
                     continue;
                 }
                 Log.d("file 2 增加了方法 "+method.getmName());
+                sbResult.append("file 2 增加了方法 "+method.getmName());
+                sbResult.append("\r\n");
                 mAddMethodCount++;
             }
         }
         Log.d("-------------------------------------------");
-
+        sbResult.append("-------------------------------------------");
+        sbResult.append("\r\n");
     }
 
     private Map<String,ClassModel> readJarFile(String jarFilePath) {
@@ -208,7 +240,7 @@ public class ComPareJar {
 
             //方法
             if (temp.contains("(") && temp.contains(")") && !mIgnoreMethod) {
-                MethodModel methodModel = anaylzeMethodString(temp);
+                MethodModel methodModel = anaylzeMethodStringV2(temp);
                 if (methodModel != null) {
                     methodList.add(methodModel);
                 }
@@ -264,6 +296,18 @@ public class ComPareJar {
         return methodModel;
     }
 
+
+    /**
+     * 解析方法
+     * 这个版本的解析方法很粗暴， 直接设置一个名字 不去解析返回类型，参数
+     * @param methodString
+     * @return
+     */
+    private MethodModel anaylzeMethodStringV2(String methodString) {
+        MethodModel methodModel = new MethodModel();
+        methodModel.setmName(methodString);
+        return methodModel;
+    }
     public void setmIgnoreFile(boolean mIgnoreFile) {
         this.mIgnoreFile = mIgnoreFile;
     }
