@@ -6,15 +6,19 @@ import com.zhangyue.campare.model.MethodModel;
 import com.zhangyue.campare.tools.*;
 
 import java.io.File;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
  * Created by zy1 on 16/11/2017.
  */
 public class ComPareJar {
-    String first_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin.jar";
-    String second_jar_path = "C:\\Users\\zy1\\Downloads\\japi-compliance-checker-master\\iReader_plugin2.jar";
-    public static final String unZipFileDir=Utils.getCurPath()+"\\temp";
+    private String first_jar_path = "";     //第一个jar的路径
+    private String second_jar_path = "";    //第二个jar的路径
+    public static final String unZipFileDir=Utils.getCurPath()+"\\temp"; //解压的缓存目录
     private  boolean mIgnoreFile = false;   //是否忽略字段的变化
     private  boolean mIgnoreMethod = false; //是否忽略方法的变化
 
@@ -27,9 +31,9 @@ public class ComPareJar {
     }
 
     public void compare(){
-        Map<String, ClassInfo> map1 = readJarMd5(first_jar_path,unZipFileDir+"1");
+        Map<String, ClassInfo> map1 = readJarFileMd5(first_jar_path,unZipFileDir+"/1");
 
-        Map<String, ClassInfo> map2 = readJarMd5(second_jar_path,unZipFileDir+"2");
+        Map<String, ClassInfo> map2 = readJarFileMd5(second_jar_path,unZipFileDir+"/2");
         List<String> mDiffFileKey = new ArrayList<>();
 
         Iterator<Map.Entry<String, ClassInfo>> iterator = map2.entrySet().iterator();
@@ -43,7 +47,8 @@ public class ComPareJar {
                     mDiffFileKey.add(key);
                 }
             }else {
-                //新增了类
+                // TODO: 21/11/2017  增加了类 需要后续去处理
+                //新增了类  
 //                Log.d("增加了类："+map2.get(key).getmClassName());
             }
         }
@@ -65,9 +70,14 @@ public class ComPareJar {
         Log.d("删除方法总数："+mRemoveMethodCount);
         Log.d("增加字段总数："+mAddFieldCount);
         Log.d("删除字段总数："+mRemoveFieldCount);
+        clearTemp();
     }
 
     private void compareModel(ClassModel mod1,ClassModel mod2) {
+        if (mod1 ==null || mod2 ==null) {
+            return;
+        }
+
         if (mod1.equals(mod2)) {
             return;
         }
@@ -158,7 +168,7 @@ public class ComPareJar {
      * @param unZipPath
      * @return
      */
-    public Map<String,ClassInfo> readJarMd5(String jarFilePath,String unZipPath){
+    public Map<String,ClassInfo> readJarFileMd5(String jarFilePath, String unZipPath){
         Map<String,ClassInfo> jarMap = new HashMap<>();
         Zip zip = new Zip();
         zip.unzip(jarFilePath,unZipPath,true);
@@ -261,4 +271,41 @@ public class ComPareJar {
     public void setmIgnoreMethod(boolean mIgnoreMethod) {
         this.mIgnoreMethod = mIgnoreMethod;
     }
+
+    public void setFirst_jar_path(String first_jar_path) {
+        this.first_jar_path = first_jar_path;
+    }
+
+    public void setSecond_jar_path(String second_jar_path) {
+        this.second_jar_path = second_jar_path;
+    }
+
+
+    /**
+     * 删除缓存文件   后续处理
+     */
+    private void clearTemp() {
+//        try {
+//            Utils.deleteIfExists(Paths.get(unZipFileDir));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+//        Command.exeCmd("rm -rf "+unZipFileDir);
+    }
+
+    private static class FindJavaVisitor extends SimpleFileVisitor<Path>{
+        private List result;
+        public FindJavaVisitor(List result){
+            this.result = result;
+        }
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs){
+//            if(file.toString().endsWith(".java")){
+//                result.add(file.getFileName());
+//            }
+            return FileVisitResult.CONTINUE;
+        }
+    }
+
 }
