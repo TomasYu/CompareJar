@@ -1,5 +1,6 @@
 package com.zhangyue.campare;
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import com.zhangyue.campare.model.ClassInfo;
 import com.zhangyue.campare.model.ClassModel;
 import com.zhangyue.campare.model.MethodModel;
@@ -83,8 +84,8 @@ public class ComPareJar {
             }else {
                 //新增了类
                 mAddClassCount++;
-                Log.d("filed2 增加了类："+key);
-                sbResult.append("filed2 增加了类："+key);
+                Log.d(Constant.NEW_JAR +" 增加了类："+key);
+                sbResult.append(Constant.NEW_JAR +" 增加了类："+key);
                 sbResult.append("\r\n");
             }
         }
@@ -96,8 +97,8 @@ public class ComPareJar {
             if (!map2.containsKey(key)) {
                 //删除了类
                 mRemoveClassCount++;
-                Log.d("filed2 删除了类："+key);
-                sbResult.append("filed2 删除了类："+key);
+                Log.d(Constant.NEW_JAR +" 删除了类："+key);
+                sbResult.append(Constant.NEW_JAR +" 删除了类："+key);
                 sbResult.append("\r\n");
             }
         }
@@ -126,8 +127,8 @@ public class ComPareJar {
                     filed2.remove(field);
                     continue;
                 }
-                Log.d("filed2 删除了字段"+field);
-                sbResult.append("filed2 删除了字段"+field);
+                Log.d(Constant.NEW_JAR +" 删除了字段"+field);
+                sbResult.append(Constant.NEW_JAR +" 删除了字段"+field);
                 sbResult.append("\r\n");
                 mRemoveFieldCount++;
 
@@ -154,8 +155,8 @@ public class ComPareJar {
                     methodMod2.remove(method);
                     continue;
                 }
-                Log.d("filed2 删除了方法 "+method.getmName());
-                sbResult.append("filed2 删除了方法 "+method.getmName());
+                Log.d(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
+                sbResult.append(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
                 sbResult.append("\r\n");
                 mRemoveMethodCount++;
             }
@@ -170,8 +171,8 @@ public class ComPareJar {
                 mAddMethodCount++;
             }
         }
-        Log.d("-------------------------------------------");
-        sbResult.append("-------------------------------------------");
+        Log.d(Constant.LINE_SPLITE);
+        sbResult.append(Constant.LINE_SPLITE);
         sbResult.append("\r\n");
     }
 
@@ -346,22 +347,6 @@ public class ComPareJar {
         this.second_jar_path = second_jar_path;
     }
 
-    private static class FindJavaVisitor extends SimpleFileVisitor<Path>{
-
-
-        private List result;
-
-        public FindJavaVisitor(List result){
-            this.result = result;
-        }
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs){
-//            if(file.toString().endsWith(".java")){
-//                result.add(file.getFileName());
-//            }
-            return FileVisitResult.CONTINUE;
-        }
-    }
     /**
      * 结果输出到文件
      */
@@ -376,29 +361,67 @@ public class ComPareJar {
             e.printStackTrace();
         }
     }
-    private void analyzeResult() {
-        Log.d("总结：");
-        Log.d("增加类总数："+mAddClassCount);
-        Log.d("删除类总数："+mRemoveClassCount);
-        Log.d("增加方法总数："+mAddMethodCount);
-        Log.d("删除方法总数："+mRemoveMethodCount);
-        Log.d("增加字段总数："+mAddFieldCount);
-        Log.d("删除字段总数："+mRemoveFieldCount);
 
-        sbResult.append("总结：");
+    /**
+     * 分析结果 组织文字
+     */
+    private void analyzeResult() {
+        //打印分隔符 方便查看
+        Log.d(Constant.LINE_SPLITE);
+        sbResult.append(Constant.LINE_SPLITE);
         sbResult.append("\r\n");
-        sbResult.append("增加类总数："+mAddClassCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除类总数："+mRemoveClassCount);
-        sbResult.append("\r\n");
-        sbResult.append("增加方法总数："+mAddMethodCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除方法总数："+mRemoveMethodCount);
-        sbResult.append("\r\n");
-        sbResult.append("增加字段总数："+mAddFieldCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除字段总数："+mRemoveFieldCount);
-        sbResult.append("\r\n");
+
+
+        if ( mAddClassCount ==0
+             &&mRemoveClassCount ==0
+             &&mAddMethodCount ==0
+             &&mRemoveMethodCount ==0
+             &&mAddFieldCount ==0
+             &&mRemoveFieldCount ==0){
+            //jar 包无差异
+            Log.d( Constant.JAR_NO_CHANGE);
+            sbResult.append(Constant.JAR_NO_CHANGE);
+            sbResult.append("\r\n");
+
+        }else {
+            Log.d(Constant.JAR_HAVE_CHANGE);
+            sbResult.append(Constant.JAR_HAVE_CHANGE);
+            sbResult.append("\r\n");
+        }
+        if (mAddClassCount !=0) {
+            Log.d("增加类总数："+mAddClassCount);
+            sbResult.append("增加类总数："+mAddClassCount);
+            sbResult.append("\r\n");
+        }
+        if (mRemoveClassCount !=0) {
+            Log.d("删除类总数："+mRemoveClassCount);
+            sbResult.append("删除类总数："+mRemoveClassCount);
+            sbResult.append("\r\n");
+        }
+
+        if (mAddMethodCount !=0) {
+            Log.d("增加方法总数："+mAddMethodCount);
+            sbResult.append("增加方法总数："+mAddMethodCount);
+            sbResult.append("\r\n");
+        }
+
+        if (mRemoveMethodCount !=0) {
+            Log.d("删除方法总数："+mRemoveMethodCount);
+            sbResult.append("删除方法总数："+mRemoveMethodCount);
+            sbResult.append("\r\n");
+        }
+
+        if (mAddFieldCount !=0) {
+            Log.d("增加字段总数："+mAddFieldCount);
+            sbResult.append("增加字段总数："+mAddFieldCount);
+            sbResult.append("\r\n");
+        }
+
+        if (mRemoveFieldCount !=0) {
+            Log.d("删除字段总数："+mRemoveFieldCount);
+            sbResult.append("删除字段总数："+mRemoveFieldCount);
+            sbResult.append("\r\n");
+        }
     }
 
 }

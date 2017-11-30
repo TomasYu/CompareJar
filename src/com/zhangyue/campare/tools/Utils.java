@@ -65,8 +65,8 @@ public class Utils {
             FileChannel channel = fos.getChannel();
             ByteBuffer src = Charset.forName("utf8").encode(content);
             // 字节缓冲的容量和limit会随着数据长度变化，不是固定不变的
-            System.out.println("初始化容量和limit：" + src.capacity() + ","
-                    + src.limit());
+//            System.out.println("初始化容量和limit：" + src.capacity() + ","
+//                    + src.limit());
             int length = 0;
 
             while ((length = channel.write(src)) != 0) {
