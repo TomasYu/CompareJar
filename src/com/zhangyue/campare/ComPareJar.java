@@ -21,21 +21,50 @@ public class ComPareJar {
     private  boolean mIgnoreFile = false;   //是否忽略字段的变化
     private  boolean mIgnoreMethod = false; //是否忽略方法的变化
 
-    private int mAddFieldCount =  0;
-    private int mRemoveFieldCount =  0;
-    private int mAddMethodCount = 0;
-    private int mRemoveMethodCount = 0;
-    private int mAddClassCount = 0;
-    private int mRemoveClassCount = 0;
-    private StringBuffer sbResult;
+    private int mAddFieldCount =  0;            //计数用
+    private int mRemoveFieldCount =  0;         //计数用
+    private int mAddMethodCount = 0;            //计数用
+    private int mRemoveMethodCount = 0;         //计数用
+    private int mAddClassCount = 0;             //计数用
+    private int mRemoveClassCount = 0;          //计数用
+    private StringBuffer sbResult;              //计数用
     public ComPareJar(){
 
     }
 
     public void compare(){
-        Map<String, ClassInfo> map1 = readJarFileMd5(first_jar_path,unZipFileDir+"/1");
+        //清理工作空间
+        clearTemp();
 
-        Map<String, ClassInfo> map2 = readJarFileMd5(second_jar_path,unZipFileDir+"/2");
+        Map<String, ClassInfo> map1 = readJarFileMd5(first_jar_path,unZipFileDir+"/1");     //读取第一个jar包的md5
+        Map<String, ClassInfo> map2 = readJarFileMd5(second_jar_path,unZipFileDir+"/2");    //读取第二个jar包的md5
+
+        List<String> mDiffFileKey = getDiffClass(map1, map2);   //得到md5不一样的class
+
+        for (String key : mDiffFileKey) {
+            //从不同的mDiffFileKey 取出两个class
+            //1
+            ClassInfo classInfo1 = map1.get(key);
+            ClassModel classMod1 = readClassModelFromFile(classInfo1.getmClassPath());//从class文件里面读取ClassMode
+            //2
+            ClassInfo classInfo2 = map2.get(key);
+            ClassModel classMod2 = readClassModelFromFile(classInfo2.getmClassPath());//从class文件里面读取ClassMode
+
+            compareModel(classMod1,classMod2);  //比较两个classModel
+        }
+
+        analyzeResult();//分析结果
+
+        writeResult();// 写文件
+    }
+
+    /**
+     * 得到ma5不同的class
+     * @param map1
+     * @param map2
+     * @return
+     */
+    private List<String> getDiffClass(Map<String, ClassInfo> map1, Map<String, ClassInfo> map2) {
         List<String> mDiffFileKey = new ArrayList<>();
         sbResult = new StringBuffer();
         Iterator<Map.Entry<String, ClassInfo>> iterator2 = map2.entrySet().iterator();
@@ -72,52 +101,7 @@ public class ComPareJar {
                 sbResult.append("\r\n");
             }
         }
-
-        for (String key : mDiffFileKey) {
-            //从不同的mDiffFileKey 取出两个class
-            //1
-            ClassInfo classInfo1 = map1.get(key);
-            ClassModel classMod1 = readClassModelFromFile(classInfo1.getmClassPath());
-            //2
-            ClassInfo classInfo2 = map2.get(key);
-            ClassModel classMod2 = readClassModelFromFile(classInfo2.getmClassPath());
-
-            compareModel(classMod1,classMod2);
-        }
-        
-        Log.d("总结：");
-        Log.d("增加类总数："+mAddClassCount);
-        Log.d("删除类总数："+mRemoveClassCount);
-        Log.d("增加方法总数："+mAddMethodCount);
-        Log.d("删除方法总数："+mRemoveMethodCount);
-        Log.d("增加字段总数："+mAddFieldCount);
-        Log.d("删除字段总数："+mRemoveFieldCount);
-
-        sbResult.append("总结：");
-        sbResult.append("\r\n");
-        sbResult.append("增加类总数："+mAddClassCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除类总数："+mRemoveClassCount);
-        sbResult.append("\r\n");
-        sbResult.append("增加方法总数："+mAddMethodCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除方法总数："+mRemoveMethodCount);
-        sbResult.append("\r\n");
-        sbResult.append("增加字段总数："+mAddFieldCount);
-        sbResult.append("\r\n");
-        sbResult.append("删除字段总数："+mRemoveFieldCount);
-        sbResult.append("\r\n");
-
-        try {
-            String resultFilePath = unZipFileDir + "/result.txt";
-            Path path = Paths.get(resultFilePath);
-            Files.deleteIfExists(path);
-            Files.createFile(path);
-            Utils.write2File(resultFilePath,sbResult.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        clearTemp();
+        return mDiffFileKey;
     }
 
     private void compareModel(ClassModel mod1,ClassModel mod2) {
@@ -206,18 +190,15 @@ public class ComPareJar {
     }
 
     /**
-     * 从class文件中读取ClassModel
-     * @param classFilePath
-     * @return
+     * 删除缓存文件
      */
-    private ClassModel readClassModelFromFile(String classFilePath){
-        String string = JavaCommand.javapClass(classFilePath);
-        if (Utils.isEmpty(string)) {
-            return null;
+    private void clearTemp() {
+        try {
+            Utils.deleteIfExists(Paths.get(unZipFileDir));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        ClassModel classModel = analyzeClassString(string);
-        return classModel;
+//        Command.exeCmd("rm -rf "+unZipFileDir);
     }
 
     /**
@@ -239,6 +220,21 @@ public class ComPareJar {
             jarMap.put(key, new ClassInfo(mZipFile,MD5.getMd5ByFile(new File(mZipFile))));
         }
         return jarMap;
+    }
+
+    /**
+     * 从class文件中读取ClassModel
+     * @param classFilePath
+     * @return
+     */
+    private ClassModel readClassModelFromFile(String classFilePath){
+        String string = JavaCommand.javapClass(classFilePath);
+        if (Utils.isEmpty(string)) {
+            return null;
+        }
+
+        ClassModel classModel = analyzeClassString(string);
+        return classModel;
     }
 
     /**
@@ -322,7 +318,6 @@ public class ComPareJar {
         return methodModel;
     }
 
-
     /**
      * 解析方法
      * 这个版本的解析方法很粗暴， 直接设置一个名字 不去解析返回类型，参数
@@ -334,10 +329,11 @@ public class ComPareJar {
         methodModel.setmName(methodString);
         return methodModel;
     }
+
+
     public void setmIgnoreFile(boolean mIgnoreFile) {
         this.mIgnoreFile = mIgnoreFile;
     }
-
     public void setmIgnoreMethod(boolean mIgnoreMethod) {
         this.mIgnoreMethod = mIgnoreMethod;
     }
@@ -350,22 +346,11 @@ public class ComPareJar {
         this.second_jar_path = second_jar_path;
     }
 
-
-    /**
-     * 删除缓存文件   后续处理
-     */
-    private void clearTemp() {
-//        try {
-//            Utils.deleteIfExists(Paths.get(unZipFileDir));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-//        Command.exeCmd("rm -rf "+unZipFileDir);
-    }
-
     private static class FindJavaVisitor extends SimpleFileVisitor<Path>{
+
+
         private List result;
+
         public FindJavaVisitor(List result){
             this.result = result;
         }
@@ -376,6 +361,44 @@ public class ComPareJar {
 //            }
             return FileVisitResult.CONTINUE;
         }
+    }
+    /**
+     * 结果输出到文件
+     */
+    private void writeResult() {
+        try {
+            String resultFilePath = unZipFileDir + "/result.txt";
+            Path path = Paths.get(resultFilePath);
+            Files.deleteIfExists(path);
+            Files.createFile(path);
+            Utils.write2File(resultFilePath,sbResult.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void analyzeResult() {
+        Log.d("总结：");
+        Log.d("增加类总数："+mAddClassCount);
+        Log.d("删除类总数："+mRemoveClassCount);
+        Log.d("增加方法总数："+mAddMethodCount);
+        Log.d("删除方法总数："+mRemoveMethodCount);
+        Log.d("增加字段总数："+mAddFieldCount);
+        Log.d("删除字段总数："+mRemoveFieldCount);
+
+        sbResult.append("总结：");
+        sbResult.append("\r\n");
+        sbResult.append("增加类总数："+mAddClassCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除类总数："+mRemoveClassCount);
+        sbResult.append("\r\n");
+        sbResult.append("增加方法总数："+mAddMethodCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除方法总数："+mRemoveMethodCount);
+        sbResult.append("\r\n");
+        sbResult.append("增加字段总数："+mAddFieldCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除字段总数："+mRemoveFieldCount);
+        sbResult.append("\r\n");
     }
 
 }
