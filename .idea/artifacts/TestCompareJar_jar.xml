@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TestCompareJar:jar">
+    <output-path>$PROJECT_DIR$/../ComPareJar/out/artifacts/TestCompareJar_jar</output-path>
+    <root id="archive" name="TestCompareJar.jar">
+      <element id="module-output" name="TestCompareJar" />
+    </root>
+  </artifact>
+</component>
