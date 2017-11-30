@@ -25,6 +25,8 @@ public class ComPareJar {
     private int mRemoveFieldCount =  0;
     private int mAddMethodCount = 0;
     private int mRemoveMethodCount = 0;
+    private int mAddClassCount = 0;
+    private int mRemoveClassCount = 0;
     private StringBuffer sbResult;
     public ComPareJar(){
 
@@ -36,20 +38,38 @@ public class ComPareJar {
         Map<String, ClassInfo> map2 = readJarFileMd5(second_jar_path,unZipFileDir+"/2");
         List<String> mDiffFileKey = new ArrayList<>();
         sbResult = new StringBuffer();
-        Iterator<Map.Entry<String, ClassInfo>> iterator = map2.entrySet().iterator();
-        while (iterator.hasNext()){
-            Map.Entry<String, ClassInfo> next = iterator.next();
+        Iterator<Map.Entry<String, ClassInfo>> iterator2 = map2.entrySet().iterator();
+        while (iterator2.hasNext()){
+            Map.Entry<String, ClassInfo> next = iterator2.next();
             String key = next.getKey();
             if (map1.containsKey(key)){
                 ClassInfo classInfo1 = map1.get(key);
                 ClassInfo classInfo2 = map2.get(key);
                 if (!classInfo1.equals(classInfo2) ){
                     mDiffFileKey.add(key);
+                }else {
+                    map1.remove(key);
                 }
+
             }else {
-                // TODO: 21/11/2017  增加了类 需要后续去处理
-                //新增了类  
-//                Log.d("增加了类："+map2.get(key).getmClassName());
+                //新增了类
+                mAddClassCount++;
+                Log.d("filed2 增加了类："+key);
+                sbResult.append("filed2 增加了类："+key);
+                sbResult.append("\r\n");
+            }
+        }
+
+        Iterator<Map.Entry<String, ClassInfo>> iterator1 = map1.entrySet().iterator();
+        while (iterator1.hasNext()){
+            Map.Entry<String, ClassInfo> next = iterator1.next();
+            String key = next.getKey();
+            if (!map2.containsKey(key)) {
+                //删除了类
+                mRemoveClassCount++;
+                Log.d("filed2 删除了类："+key);
+                sbResult.append("filed2 删除了类："+key);
+                sbResult.append("\r\n");
             }
         }
 
@@ -66,12 +86,18 @@ public class ComPareJar {
         }
         
         Log.d("总结：");
+        Log.d("增加类总数："+mAddClassCount);
+        Log.d("删除类总数："+mRemoveClassCount);
         Log.d("增加方法总数："+mAddMethodCount);
         Log.d("删除方法总数："+mRemoveMethodCount);
         Log.d("增加字段总数："+mAddFieldCount);
         Log.d("删除字段总数："+mRemoveFieldCount);
 
         sbResult.append("总结：");
+        sbResult.append("\r\n");
+        sbResult.append("增加类总数："+mAddClassCount);
+        sbResult.append("\r\n");
+        sbResult.append("删除类总数："+mRemoveClassCount);
         sbResult.append("\r\n");
         sbResult.append("增加方法总数："+mAddMethodCount);
         sbResult.append("\r\n");
