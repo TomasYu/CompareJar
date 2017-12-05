@@ -138,8 +138,8 @@ public class ComPareJar {
                 if (filed1.contains(field)){
                     continue;
                 }
-                Log.d("file 2 增加了字段"+field);
-                sbResult.append("file 2 增加了字段"+field);
+                Log.d(Constant.NEW_JAR +" 增加了字段"+field);
+                sbResult.append(Constant.NEW_JAR +" 增加了字段"+field);
                 sbResult.append("\r\n");
                 mAddFieldCount++;
             }
@@ -165,8 +165,8 @@ public class ComPareJar {
                 if (methodMod1.contains(method)){
                     continue;
                 }
-                Log.d("file 2 增加了方法 "+method.getmName());
-                sbResult.append("file 2 增加了方法 "+method.getmName());
+                Log.d(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
+                sbResult.append(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
                 sbResult.append("\r\n");
                 mAddMethodCount++;
             }
