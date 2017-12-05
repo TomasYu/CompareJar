@@ -29,6 +29,7 @@ public class ComPareJar {
     private int mAddClassCount = 0;             //计数用
     private int mRemoveClassCount = 0;          //计数用
     private StringBuffer sbResult;              //计数用
+    private ArrayList<String> mResultList = new ArrayList<>(10);// 用来记录结果，最后输出
     public ComPareJar(){
 
     }
@@ -68,6 +69,7 @@ public class ComPareJar {
     private List<String> getDiffClass(Map<String, ClassInfo> map1, Map<String, ClassInfo> map2) {
         List<String> mDiffFileKey = new ArrayList<>();
         sbResult = new StringBuffer();
+        StringBuffer diffClass = new StringBuffer();
         Iterator<Map.Entry<String, ClassInfo>> iterator2 = map2.entrySet().iterator();
         while (iterator2.hasNext()){
             Map.Entry<String, ClassInfo> next = iterator2.next();
@@ -84,9 +86,9 @@ public class ComPareJar {
             }else {
                 //新增了类
                 mAddClassCount++;
-                Log.d(Constant.NEW_JAR +" 增加了类："+key);
-                sbResult.append(Constant.NEW_JAR +" 增加了类："+key);
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 增加了类："+key);
+                diffClass.append(Constant.NEW_JAR +" 增加了类："+key);
+                diffClass.append("\r\n");
             }
         }
 
@@ -97,11 +99,12 @@ public class ComPareJar {
             if (!map2.containsKey(key)) {
                 //删除了类
                 mRemoveClassCount++;
-                Log.d(Constant.NEW_JAR +" 删除了类："+key);
-                sbResult.append(Constant.NEW_JAR +" 删除了类："+key);
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 删除了类："+key);
+                diffClass.append(Constant.NEW_JAR +" 删除了类："+key);
+                diffClass.append("\r\n");
             }
         }
+        mResultList.add(diffClass.toString());
         return mDiffFileKey;
     }
 
@@ -114,9 +117,11 @@ public class ComPareJar {
             return;
         }
 
-        Log.d(mod1.getmClassName()+"的差异");
-        sbResult.append(mod1.getmClassName()+"的差异");
-        sbResult.append("\r\n");
+        StringBuffer diff = new StringBuffer(); //一条记录
+
+//        Log.d(mod1.getmClassName()+"的差异");
+        diff.append(mod1.getmClassName()+"的差异");
+        diff.append("\r\n");
 
         //对比字段
         List<String> filed1 = mod1.getmFiled();
@@ -127,9 +132,9 @@ public class ComPareJar {
                     filed2.remove(field);
                     continue;
                 }
-                Log.d(Constant.NEW_JAR +" 删除了字段"+field);
-                sbResult.append(Constant.NEW_JAR +" 删除了字段"+field);
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 删除了字段"+field);
+                diff.append(Constant.NEW_JAR +" 删除了字段"+field);
+                diff.append("\r\n");
                 mRemoveFieldCount++;
 
             }
@@ -138,9 +143,9 @@ public class ComPareJar {
                 if (filed1.contains(field)){
                     continue;
                 }
-                Log.d(Constant.NEW_JAR +" 增加了字段"+field);
-                sbResult.append(Constant.NEW_JAR +" 增加了字段"+field);
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 增加了字段"+field);
+                diff.append(Constant.NEW_JAR +" 增加了字段"+field);
+                diff.append("\r\n");
                 mAddFieldCount++;
             }
         }
@@ -155,9 +160,9 @@ public class ComPareJar {
                     methodMod2.remove(method);
                     continue;
                 }
-                Log.d(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
-                sbResult.append(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
+                diff.append(Constant.NEW_JAR +" 删除了方法 "+method.getmName());
+                diff.append("\r\n");
                 mRemoveMethodCount++;
             }
 
@@ -165,15 +170,16 @@ public class ComPareJar {
                 if (methodMod1.contains(method)){
                     continue;
                 }
-                Log.d(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
-                sbResult.append(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
-                sbResult.append("\r\n");
+//                Log.d(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
+                diff.append(Constant.NEW_JAR +" 增加了方法 "+method.getmName());
+                diff.append("\r\n");
                 mAddMethodCount++;
             }
         }
-        Log.d(Constant.LINE_SPLITE);
-        sbResult.append(Constant.LINE_SPLITE);
-        sbResult.append("\r\n");
+//        Log.d(Constant.LINE_SPLITE);
+        diff.append(Constant.LINE_SPLITE);
+        diff.append("\r\n");
+        mResultList.add(diff.toString());
     }
 
     private Map<String,ClassModel> readJarFile(String jarFilePath) {
@@ -366,10 +372,10 @@ public class ComPareJar {
      * 分析结果 组织文字
      */
     private void analyzeResult() {
-        //打印分隔符 方便查看
-        Log.d(Constant.LINE_SPLITE);
-        sbResult.append(Constant.LINE_SPLITE);
-        sbResult.append("\r\n");
+//        //打印分隔符 方便查看
+//        Log.d(Constant.LINE_SPLITE);
+//        sbResult.append(Constant.LINE_SPLITE);
+//        sbResult.append("\r\n");
 
 
         if ( mAddClassCount ==0
@@ -421,6 +427,16 @@ public class ComPareJar {
             Log.d("删除字段总数："+mRemoveFieldCount);
             sbResult.append("删除字段总数："+mRemoveFieldCount);
             sbResult.append("\r\n");
+        }
+
+        //打印分隔符 方便查看
+        Log.d(Constant.LINE_SPLITE);
+        sbResult.append(Constant.LINE_SPLITE);
+        sbResult.append("\r\n");
+        //打印具体的差异
+        for (String result : mResultList) {
+            Log.d(result);
+            sbResult.append(result);
         }
     }
 
